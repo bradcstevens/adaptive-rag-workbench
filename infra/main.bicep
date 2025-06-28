@@ -141,7 +141,7 @@ module openAi './app/ai/cognitive-services.bicep' = if (openAiResourceGroupLocat
         model: {
           format: 'OpenAI'
           name: 'gpt-4'
-          version: '0613'
+          version: 'turbo-2024-04-09'
         }
         sku: {
           name: 'Standard'
@@ -181,7 +181,7 @@ module openAiSeparate './app/ai/cognitive-services.bicep' = if (openAiResourceGr
         model: {
           format: 'OpenAI'
           name: 'gpt-4'
-          version: '0613'
+          version: 'turbo-2024-04-09'
         }
         sku: {
           name: 'Standard'
