@@ -6,11 +6,7 @@ interface Message {
   timestamp: Date;
 }
 
-const ensureTimestamp = (message: any): Message => ({
-  role: message.role || 'assistant',
-  content: message.content || '',
-  timestamp: message.timestamp || new Date()
-});
+
 
 export function useChatStream(mode: string) {
   const [messages, setMessages] = useState<Message[]>([]);

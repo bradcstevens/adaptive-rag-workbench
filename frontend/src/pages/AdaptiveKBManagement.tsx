@@ -3,13 +3,18 @@ import { ChatLayout } from '../components/ChatLayout';
 import { Button } from '../components/ui/button';
 import { Card } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
-import { Progress } from '../components/ui/progress';
+
 import { Upload, FileText, RefreshCw, Database, TrendingUp, Building2 } from 'lucide-react';
+
+interface IndexStats {
+  total_documents: number;
+  company_breakdown: Record<string, number>;
+}
 
 export function AdaptiveKBManagement() {
   const [uploadStatus, setUploadStatus] = useState<string>('');
   const [isUploading, setIsUploading] = useState(false);
-  const [indexStats, setIndexStats] = useState<any>(null);
+  const [indexStats, setIndexStats] = useState<IndexStats | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
