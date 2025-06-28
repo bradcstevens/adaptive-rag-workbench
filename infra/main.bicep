@@ -95,9 +95,20 @@ module api './app/api.bicep' = {
     storageAccountName: storage.outputs.name
     applicationInsightsConnectionString: monitoring.outputs.applicationInsightsConnectionString
     identityName: apiIdentity.outputs.identityName
+    openAiKey: openAi.outputs.key
+    searchKey: searchService.outputs.key
+    documentIntelligenceKey: documentIntelligence.outputs.key
+    storageKey: storage.outputs.key
+    containerRegistryName: containerRegistry.outputs.name
   }
   dependsOn: [
     keyVaultSecrets
+    apiKeyVaultAccess
+    apiOpenAiAccess
+    apiSearchAccess
+    apiDocumentIntelligenceAccess
+    apiStorageAccess
+    apiContainerRegistryAccess
   ]
 }
 
@@ -203,6 +214,18 @@ module storage './app/storage-account.bicep' = {
   }
 }
 
+// Create a container registry
+module containerRegistry './app/container-registry.bicep' = {
+  name: 'container-registry'
+  scope: resourceGroup
+  params: {
+    name: '${abbrs.containerRegistryRegistries}${resourceToken}'
+    location: location
+    tags: tags
+    sku: 'Basic'
+  }
+}
+
 // Create a keyvault to store secrets
 module keyVault './app/keyvault.bicep' = {
   name: 'keyvault'
@@ -288,6 +311,16 @@ module apiStorageAccess './app/rbac/storage-access.bicep' = {
   }
 }
 
+// Give the API access to the container registry
+module apiContainerRegistryAccess './app/rbac/container-registry-access.bicep' = {
+  name: 'api-container-registry-access'
+  scope: resourceGroup
+  params: {
+    containerRegistryName: containerRegistry.outputs.name
+    principalId: apiIdentity.outputs.identityPrincipalId
+  }
+}
+
 // Store secrets in Key Vault
 module keyVaultSecrets './app/keyvault-secrets.bicep' = {
   name: 'keyvault-secrets'
@@ -301,6 +334,10 @@ module keyVaultSecrets './app/keyvault-secrets.bicep' = {
   }
   dependsOn: [
     apiKeyVaultAccess
+    apiOpenAiAccess
+    apiSearchAccess
+    apiDocumentIntelligenceAccess
+    apiStorageAccess
   ]
 }
 
@@ -333,6 +370,10 @@ output AZURE_DOCUMENT_INTELLIGENCE_KEY string = documentIntelligence.outputs.key
 output AZURE_STORAGE_ACCOUNT string = storage.outputs.name
 output AZURE_STORAGE_KEY string = storage.outputs.key
 output AZURE_STORAGE_CONNECTION_STRING string = storage.outputs.connectionString
+
+// Container Registry outputs
+output AZURE_CONTAINER_REGISTRY_ENDPOINT string = containerRegistry.outputs.loginServer
+output AZURE_CONTAINER_REGISTRY_NAME string = containerRegistry.outputs.name
 
 // Service outputs
 output SERVICE_API_IDENTITY_PRINCIPAL_ID string = apiIdentity.outputs.identityPrincipalId

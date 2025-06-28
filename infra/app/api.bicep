@@ -12,6 +12,14 @@ param documentIntelligenceEndpoint string
 param storageAccountName string
 param applicationInsightsConnectionString string
 param identityName string
+param openAiKey string
+param searchKey string
+param documentIntelligenceKey string
+param storageKey string
+
+// Container registry parameters
+param containerRegistryName string
+param imageName string = ''
 
 resource containerAppsEnvironment 'Microsoft.App/managedEnvironments@2023-05-01' existing = {
   name: containerAppsEnvironmentName
@@ -27,6 +35,10 @@ resource keyVault 'Microsoft.KeyVault/vaults@2022-07-01' existing = {
 
 resource storageAccount 'Microsoft.Storage/storageAccounts@2022-05-01' existing = {
   name: storageAccountName
+}
+
+resource containerRegistry 'Microsoft.ContainerRegistry/registries@2023-01-01-preview' existing = {
+  name: containerRegistryName
 }
 
 resource api 'Microsoft.App/containerApps@2023-05-01' = {
@@ -52,25 +64,10 @@ resource api 'Microsoft.App/containerApps@2023-05-01' = {
           allowedHeaders: ['*']
         }
       }
-      secrets: [
+      secrets: []
+      registries: [
         {
-          name: 'openai-key'
-          keyVaultUrl: '${keyVault.properties.vaultUri}secrets/AZURE-OPENAI-KEY'
-          identity: identity.id
-        }
-        {
-          name: 'search-key'
-          keyVaultUrl: '${keyVault.properties.vaultUri}secrets/AZURE-SEARCH-KEY'
-          identity: identity.id
-        }
-        {
-          name: 'document-intelligence-key'
-          keyVaultUrl: '${keyVault.properties.vaultUri}secrets/AZURE-DOCUMENT-INTELLIGENCE-KEY'
-          identity: identity.id
-        }
-        {
-          name: 'storage-key'
-          keyVaultUrl: '${keyVault.properties.vaultUri}secrets/AZURE-STORAGE-KEY'
+          server: containerRegistry.properties.loginServer
           identity: identity.id
         }
       ]
@@ -78,7 +75,7 @@ resource api 'Microsoft.App/containerApps@2023-05-01' = {
     template: {
       containers: [
         {
-          image: 'mcr.microsoft.com/azuredocs/containerapps-helloworld:latest'
+          image: !empty(imageName) ? imageName : 'mcr.microsoft.com/azuredocs/containerapps-helloworld:latest'
           name: 'api'
           env: [
             {
@@ -91,7 +88,7 @@ resource api 'Microsoft.App/containerApps@2023-05-01' = {
             }
             {
               name: 'AZURE_OPENAI_KEY'
-              secretRef: 'openai-key'
+              value: openAiKey
             }
             {
               name: 'AZURE_OPENAI_CHAT_DEPLOYMENT'
@@ -107,7 +104,7 @@ resource api 'Microsoft.App/containerApps@2023-05-01' = {
             }
             {
               name: 'AZURE_SEARCH_KEY'
-              secretRef: 'search-key'
+              value: searchKey
             }
             {
               name: 'AZURE_SEARCH_INDEX'
@@ -119,7 +116,7 @@ resource api 'Microsoft.App/containerApps@2023-05-01' = {
             }
             {
               name: 'AZURE_DOCUMENT_INTELLIGENCE_KEY'
-              secretRef: 'document-intelligence-key'
+              value: documentIntelligenceKey
             }
             {
               name: 'AZURE_STORAGE_ACCOUNT'
@@ -127,7 +124,7 @@ resource api 'Microsoft.App/containerApps@2023-05-01' = {
             }
             {
               name: 'AZURE_STORAGE_KEY'
-              secretRef: 'storage-key'
+              value: storageKey
             }
             {
               name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'
