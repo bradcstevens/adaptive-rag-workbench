@@ -144,7 +144,7 @@ module openAi './app/ai/cognitive-services.bicep' = if (openAiResourceGroupLocat
           version: '2025-04-14'
         }
         sku: {
-          name: 'Standard'
+          name: 'GlobalStandard'
           capacity: 10
         }
       }
@@ -184,7 +184,7 @@ module openAiSeparate './app/ai/cognitive-services.bicep' = if (openAiResourceGr
           version: '2025-04-14'
         }
         sku: {
-          name: 'Standard'
+          name: 'GlobalStandard'
           capacity: 10
         }
       }
