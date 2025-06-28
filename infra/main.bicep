@@ -101,8 +101,8 @@ module api './app/api.bicep' = {
     tags: tags
     containerAppsEnvironmentName: containerAppsEnvironment.outputs.name
     keyVaultName: keyVault.outputs.name
-    openAiEndpoint: openAi.outputs.endpoint
-    openAiDeploymentName: openAi.outputs.deploymentName
+    openAiEndpoint: openAiResourceGroupLocation == location ? openAi.outputs.endpoint : openAiSeparate.outputs.endpoint
+    openAiDeploymentName: openAiResourceGroupLocation == location ? openAi.outputs.deploymentName : openAiSeparate.outputs.deploymentName
     searchEndpoint: searchService.outputs.endpoint
     searchIndexName: 'adaptive-rag-index'
     documentIntelligenceEndpoint: documentIntelligence.outputs.endpoint
@@ -124,10 +124,50 @@ module web './app/web.bicep' = {
   }
 }
 
-// Create an Azure OpenAI instance
-module openAi './app/ai/cognitive-services.bicep' = {
+// Create an Azure OpenAI instance in main resource group
+module openAi './app/ai/cognitive-services.bicep' = if (openAiResourceGroupLocation == location) {
   name: 'openai'
-  scope: openAiResourceGroupLocation != location ? openAiResourceGroup : resourceGroup
+  scope: resourceGroup
+  params: {
+    name: !empty(openAiServiceName) ? openAiServiceName : '${abbrs.cognitiveServicesAccounts}${resourceToken}'
+    location: openAiLocation
+    tags: tags
+    sku: {
+      name: 'S0'
+    }
+    deployments: [
+      {
+        name: 'gpt-4'
+        model: {
+          format: 'OpenAI'
+          name: 'gpt-4'
+          version: '0613'
+        }
+        sku: {
+          name: 'Standard'
+          capacity: 10
+        }
+      }
+      {
+        name: 'text-embedding-3-small'
+        model: {
+          format: 'OpenAI'
+          name: 'text-embedding-3-small'
+          version: '1'
+        }
+        sku: {
+          name: 'Standard'
+          capacity: 120
+        }
+      }
+    ]
+  }
+}
+
+// Create an Azure OpenAI instance in separate resource group
+module openAiSeparate './app/ai/cognitive-services.bicep' = if (openAiResourceGroupLocation != location) {
+  name: 'openai-separate'
+  scope: openAiResourceGroup
   params: {
     name: !empty(openAiServiceName) ? openAiServiceName : '${abbrs.cognitiveServicesAccounts}${resourceToken}'
     location: openAiLocation
@@ -259,12 +299,22 @@ module apiKeyVaultAccess './app/rbac/keyvault-access.bicep' = {
   }
 }
 
-// Give the API access to the OpenAI service
-module apiOpenAiAccess './app/rbac/openai-access.bicep' = {
+// Give the API access to the OpenAI service (main resource group)
+module apiOpenAiAccess './app/rbac/openai-access.bicep' = if (openAiResourceGroupLocation == location) {
   name: 'api-openai-access'
-  scope: openAiResourceGroupLocation != location ? openAiResourceGroup : resourceGroup
+  scope: resourceGroup
   params: {
     openAiName: openAi.outputs.name
+    principalId: apiIdentity.outputs.identityPrincipalId
+  }
+}
+
+// Give the API access to the OpenAI service (separate resource group)
+module apiOpenAiAccessSeparate './app/rbac/openai-access.bicep' = if (openAiResourceGroupLocation != location) {
+  name: 'api-openai-access-separate'
+  scope: openAiResourceGroup
+  params: {
+    openAiName: openAiSeparate.outputs.name
     principalId: apiIdentity.outputs.identityPrincipalId
   }
 }
@@ -310,9 +360,9 @@ output AZURE_KEY_VAULT_ENDPOINT string = keyVault.outputs.endpoint
 output AZURE_KEY_VAULT_NAME string = keyVault.outputs.name
 
 // OpenAI outputs
-output AZURE_OPENAI_ENDPOINT string = openAi.outputs.endpoint
-output AZURE_OPENAI_KEY string = openAi.outputs.key
-output AZURE_OPENAI_CHAT_DEPLOYMENT string = openAi.outputs.deploymentName
+output AZURE_OPENAI_ENDPOINT string = openAiResourceGroupLocation == location ? openAi.outputs.endpoint : openAiSeparate.outputs.endpoint
+output AZURE_OPENAI_KEY string = openAiResourceGroupLocation == location ? openAi.outputs.key : openAiSeparate.outputs.key
+output AZURE_OPENAI_CHAT_DEPLOYMENT string = openAiResourceGroupLocation == location ? openAi.outputs.deploymentName : openAiSeparate.outputs.deploymentName
 output AZURE_OPENAI_EMBEDDING_DEPLOYMENT string = 'text-embedding-3-small'
 
 // Search outputs
