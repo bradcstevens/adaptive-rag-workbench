@@ -50,6 +50,8 @@ resource resourceGroup 'Microsoft.Resources/resourceGroups@2021-04-01' = {
   tags: tags
 }
 
+// All resources will be deployed to the same resource group
+
 // Create an App Service Plan to group applications under the same payment plan and SKU
 module appServicePlan './app/app-service-plan.bicep' = {
   name: 'app-service-plan'
@@ -245,12 +247,22 @@ module apiKeyVaultAccess './app/rbac/keyvault-access.bicep' = {
   }
 }
 
-// Give the API access to the OpenAI service
-module apiOpenAiAccess './app/rbac/openai-access.bicep' = {
+// Give the API access to the OpenAI service (main resource group)
+module apiOpenAiAccess './app/rbac/openai-access.bicep' = if (openAiResourceGroupLocation == location) {
   name: 'api-openai-access'
   scope: resourceGroup
   params: {
     openAiName: openAi.outputs.name
+    principalId: apiIdentity.outputs.identityPrincipalId
+  }
+}
+
+// Give the API access to the OpenAI service (separate resource group)
+module apiOpenAiAccessSeparate './app/rbac/openai-access.bicep' = if (openAiResourceGroupLocation != location) {
+  name: 'api-openai-access-separate'
+  scope: openAiResourceGroup
+  params: {
+    openAiName: openAiSeparate.outputs.name
     principalId: apiIdentity.outputs.identityPrincipalId
   }
 }
@@ -296,8 +308,8 @@ output AZURE_KEY_VAULT_ENDPOINT string = keyVault.outputs.endpoint
 output AZURE_KEY_VAULT_NAME string = keyVault.outputs.name
 
 // OpenAI outputs
-output AZURE_OPENAI_ENDPOINT string = openAi.outputs.endpoint
-output AZURE_OPENAI_KEY string = openAi.outputs.key
+output AZURE_OPENAI_ENDPOINT string = openAiResourceGroupLocation == location ? openAi.outputs.endpoint : openAiSeparate.outputs.endpoint
+output AZURE_OPENAI_KEY string = openAiResourceGroupLocation == location ? openAi.outputs.key : openAiSeparate.outputs.key
 output AZURE_OPENAI_CHAT_DEPLOYMENT string = 'gpt-4.1-mini'
 output AZURE_OPENAI_EMBEDDING_DEPLOYMENT string = 'text-embedding-3-small'
 
@@ -320,4 +332,4 @@ output SERVICE_API_IDENTITY_PRINCIPAL_ID string = apiIdentity.outputs.identityPr
 output SERVICE_API_NAME string = api.outputs.SERVICE_API_NAME
 output SERVICE_API_URI string = api.outputs.SERVICE_API_URI
 output SERVICE_WEB_NAME string = web.outputs.SERVICE_WEB_NAME
-output SERVICE_WEB_URI string = web.outputs.SERVICE_WEB_URI 
+output SERVICE_WEB_URI string = web.outputs.SERVICE_WEB_URI
