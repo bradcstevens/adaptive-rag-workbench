@@ -96,6 +96,9 @@ module api './app/api.bicep' = {
     applicationInsightsConnectionString: monitoring.outputs.applicationInsightsConnectionString
     identityName: apiIdentity.outputs.identityName
   }
+  dependsOn: [
+    keyVaultSecrets
+  ]
 }
 
 // The application frontend
@@ -283,6 +286,22 @@ module apiStorageAccess './app/rbac/storage-access.bicep' = {
     storageAccountName: storage.outputs.name
     principalId: apiIdentity.outputs.identityPrincipalId
   }
+}
+
+// Store secrets in Key Vault
+module keyVaultSecrets './app/keyvault-secrets.bicep' = {
+  name: 'keyvault-secrets'
+  scope: resourceGroup
+  params: {
+    keyVaultName: keyVault.outputs.name
+    openAiKey: openAi.outputs.key
+    searchKey: searchService.outputs.key
+    documentIntelligenceKey: documentIntelligence.outputs.key
+    storageKey: storage.outputs.key
+  }
+  dependsOn: [
+    apiKeyVaultAccess
+  ]
 }
 
 // Data outputs
