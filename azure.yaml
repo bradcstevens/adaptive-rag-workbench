@@ -22,11 +22,6 @@ infra:
 pipeline:
   provider: github
 hooks:
-  preprovision:
-    shell: sh
-    run: |
-      echo "Installing backend dependencies..."
-      cd backend && poetry install
   postprovision:
     shell: sh
     run: |
