@@ -102,7 +102,7 @@ module api './app/api.bicep' = {
     containerAppsEnvironmentName: containerAppsEnvironment.outputs.name
     keyVaultName: keyVault.outputs.name
     openAiEndpoint: openAiResourceGroupLocation == location ? openAi.outputs.endpoint : openAiSeparate.outputs.endpoint
-    openAiDeploymentName: openAiResourceGroupLocation == location ? openAi.outputs.deploymentName : openAiSeparate.outputs.deploymentName
+    openAiDeploymentName: 'gpt-4.1-mini'
     searchEndpoint: searchService.outputs.endpoint
     searchIndexName: 'adaptive-rag-index'
     documentIntelligenceEndpoint: documentIntelligence.outputs.endpoint
@@ -137,11 +137,11 @@ module openAi './app/ai/cognitive-services.bicep' = if (openAiResourceGroupLocat
     }
     deployments: [
       {
-        name: 'gpt-4'
+        name: 'gpt-4.1-mini'
         model: {
           format: 'OpenAI'
-          name: 'gpt-4'
-          version: 'turbo-2024-04-09'
+          name: 'gpt-4.1-mini'
+          version: '2025-04-14'
         }
         sku: {
           name: 'Standard'
@@ -177,11 +177,11 @@ module openAiSeparate './app/ai/cognitive-services.bicep' = if (openAiResourceGr
     }
     deployments: [
       {
-        name: 'gpt-4'
+        name: 'gpt-4.1-mini'
         model: {
           format: 'OpenAI'
-          name: 'gpt-4'
-          version: 'turbo-2024-04-09'
+          name: 'gpt-4.1-mini'
+          version: '2025-04-14'
         }
         sku: {
           name: 'Standard'
@@ -362,7 +362,7 @@ output AZURE_KEY_VAULT_NAME string = keyVault.outputs.name
 // OpenAI outputs
 output AZURE_OPENAI_ENDPOINT string = openAiResourceGroupLocation == location ? openAi.outputs.endpoint : openAiSeparate.outputs.endpoint
 output AZURE_OPENAI_KEY string = openAiResourceGroupLocation == location ? openAi.outputs.key : openAiSeparate.outputs.key
-output AZURE_OPENAI_CHAT_DEPLOYMENT string = openAiResourceGroupLocation == location ? openAi.outputs.deploymentName : openAiSeparate.outputs.deploymentName
+output AZURE_OPENAI_CHAT_DEPLOYMENT string = 'gpt-4.1-mini'
 output AZURE_OPENAI_EMBEDDING_DEPLOYMENT string = 'text-embedding-3-small'
 
 // Search outputs

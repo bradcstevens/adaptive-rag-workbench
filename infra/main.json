@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.34.44.8038",
-      "templateHash": "2034919028706150493"
+      "templateHash": "1026085215233059317"
     }
   },
   "parameters": {
@@ -465,7 +465,9 @@
             "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('{0}{1}', variables('abbrs').resourcesResourceGroups, parameters('environmentName'))), 'Microsoft.Resources/deployments', 'keyvault'), '2022-09-01').outputs.name.value]"
           },
           "openAiEndpoint": "[if(equals(parameters('openAiResourceGroupLocation'), parameters('location')), createObject('value', reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('{0}{1}', variables('abbrs').resourcesResourceGroups, parameters('environmentName'))), 'Microsoft.Resources/deployments', 'openai'), '2022-09-01').outputs.endpoint.value), createObject('value', reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('{0}{1}-openai', variables('abbrs').resourcesResourceGroups, parameters('environmentName'))), 'Microsoft.Resources/deployments', 'openai-separate'), '2022-09-01').outputs.endpoint.value))]",
-          "openAiDeploymentName": "[if(equals(parameters('openAiResourceGroupLocation'), parameters('location')), createObject('value', reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('{0}{1}', variables('abbrs').resourcesResourceGroups, parameters('environmentName'))), 'Microsoft.Resources/deployments', 'openai'), '2022-09-01').outputs.deploymentName.value), createObject('value', reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('{0}{1}-openai', variables('abbrs').resourcesResourceGroups, parameters('environmentName'))), 'Microsoft.Resources/deployments', 'openai-separate'), '2022-09-01').outputs.deploymentName.value))]",
+          "openAiDeploymentName": {
+            "value": "gpt-4.1-mini"
+          },
           "searchEndpoint": {
             "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('{0}{1}', variables('abbrs').resourcesResourceGroups, parameters('environmentName'))), 'Microsoft.Resources/deployments', 'search-service'), '2022-09-01').outputs.endpoint.value]"
           },
@@ -824,11 +826,11 @@
           "deployments": {
             "value": [
               {
-                "name": "gpt-4",
+                "name": "gpt-4.1-mini",
                 "model": {
                   "format": "OpenAI",
-                  "name": "gpt-4",
-                  "version": "0613"
+                  "name": "gpt-4.1-mini",
+                  "version": "2025-04-14"
                 },
                 "sku": {
                   "name": "Standard",
@@ -986,11 +988,11 @@
           "deployments": {
             "value": [
               {
-                "name": "gpt-4",
+                "name": "gpt-4.1-mini",
                 "model": {
                   "format": "OpenAI",
-                  "name": "gpt-4",
-                  "version": "0613"
+                  "name": "gpt-4.1-mini",
+                  "version": "2025-04-14"
                 },
                 "sku": {
                   "name": "Standard",
@@ -2130,7 +2132,7 @@
     },
     "AZURE_OPENAI_CHAT_DEPLOYMENT": {
       "type": "string",
-      "value": "[if(equals(parameters('openAiResourceGroupLocation'), parameters('location')), reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('{0}{1}', variables('abbrs').resourcesResourceGroups, parameters('environmentName'))), 'Microsoft.Resources/deployments', 'openai'), '2022-09-01').outputs.deploymentName.value, reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('{0}{1}-openai', variables('abbrs').resourcesResourceGroups, parameters('environmentName'))), 'Microsoft.Resources/deployments', 'openai-separate'), '2022-09-01').outputs.deploymentName.value)]"
+      "value": "gpt-4.1-mini"
     },
     "AZURE_OPENAI_EMBEDDING_DEPLOYMENT": {
       "type": "string",
