@@ -1,12 +1,17 @@
 import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
+import { MsalProvider } from '@azure/msal-react';
+import { msalInstance } from './auth/msalConfig';
+import { AuthProvider } from './auth/AuthContext';
+import { ProtectedRoute } from './components/ProtectedRoute';
 import { ContextAwareGeneration } from './pages/ContextAwareGeneration';
 import { QAWithVerification } from './pages/QAWithVerification';
 import { AdaptiveKBManagement } from './pages/AdaptiveKBManagement';
+import { Profile } from './pages/Profile';
 import { MicrosoftLogo } from './components/MicrosoftLogo';
 import { GitHubLink } from './components/GitHubLink';
 import { Card } from './components/ui/card';
 import { Badge } from './components/ui/badge';
-import { Brain, MessageSquare, Database } from 'lucide-react';
+import { Brain, MessageSquare, Database, User } from 'lucide-react';
 import './App.css';
 
 function Navigation() {
@@ -56,6 +61,9 @@ function Navigation() {
           </div>
           
           <div className="flex items-center space-x-4">
+            <Link to="/profile" className="p-2 rounded-lg hover:bg-gray-100 transition-colors">
+              <User className="h-5 w-5 text-gray-600" />
+            </Link>
             <GitHubLink />
             <MicrosoftLogo />
           </div>
@@ -112,17 +120,25 @@ function Navigation() {
 
 function App() {
   return (
-    <Router>
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
-        <Navigation />
-        <Routes>
-          <Route path="/context-aware-generation" element={<ContextAwareGeneration />} />
-          <Route path="/qa-verification" element={<QAWithVerification />} />
-          <Route path="/adaptive-kb-management" element={<AdaptiveKBManagement />} />
-          <Route path="/" element={<ContextAwareGeneration />} />
-        </Routes>
-      </div>
-    </Router>
+    <MsalProvider instance={msalInstance}>
+      <AuthProvider>
+        <Router>
+          <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
+            <ProtectedRoute>
+              <Navigation />
+              <Routes>
+                <Route path="/redirect" element={<Profile />} />
+                <Route path="/context-aware-generation" element={<ContextAwareGeneration />} />
+                <Route path="/qa-verification" element={<QAWithVerification />} />
+                <Route path="/adaptive-kb-management" element={<AdaptiveKBManagement />} />
+                <Route path="/profile" element={<Profile />} />
+                <Route path="/" element={<ContextAwareGeneration />} />
+              </Routes>
+            </ProtectedRoute>
+          </div>
+        </Router>
+      </AuthProvider>
+    </MsalProvider>
   );
 }
 

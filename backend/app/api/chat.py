@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Request, HTTPException
+from fastapi import APIRouter, Request, HTTPException, Depends
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from typing import Dict, Any
@@ -10,6 +10,7 @@ from ..agents.writer import WriterAgent
 from ..agents.verifier import VerifierAgent
 from ..agents.curator import CuratorAgent
 from ..core.globals import initialize_kernel, get_agent_registry
+from ..auth.middleware import get_current_user
 
 router = APIRouter()
 
@@ -33,7 +34,7 @@ orchestrator.set_agents(
 )
 
 @router.post("/chat")
-async def chat_stream(request: ChatRequest):
+async def chat_stream(request: ChatRequest, current_user: dict = Depends(get_current_user)):
     try:
         plan = await orchestrator.create_plan({"mode": request.mode})
         

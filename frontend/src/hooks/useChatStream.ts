@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { useAuth } from '../auth/AuthContext';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -11,6 +12,7 @@ interface Message {
 export function useChatStream(mode: string) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const { getAccessToken } = useAuth();
 
   const sendMessage = useCallback(async (content: string) => {
     const userMessage: Message = {
@@ -23,11 +25,20 @@ export function useChatStream(mode: string) {
     setIsLoading(true);
 
     try {
+      // Get access token (will be 'demo-token' in demo mode)
+      const token = await getAccessToken();
+      
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      };
+      
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
       const response = await fetch('/api/chat', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers,
         body: JSON.stringify({ 
           prompt: content,
           mode: mode
@@ -105,7 +116,7 @@ export function useChatStream(mode: string) {
     } finally {
       setIsLoading(false);
     }
-  }, [mode]);
+  }, [mode, getAccessToken]);
 
   const clearMessages = useCallback(() => {
     setMessages([]);
